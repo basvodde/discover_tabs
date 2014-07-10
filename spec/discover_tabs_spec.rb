@@ -110,6 +110,10 @@ describe "It can discover tabs" do
     it "Should default the filename|directory to current dir" do
       DiscoverTabs.parse_argv([])[:files].should == ["."]
     end
+
+    it "Options also set the files" do
+      DiscoverTabs.parse_argv(["-r4"])[:files].should == ["."]
+    end
   end
 
   context "Command line main entry point" do

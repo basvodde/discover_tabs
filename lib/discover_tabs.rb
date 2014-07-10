@@ -56,10 +56,11 @@ module DiscoverTabs
           exit(0)
         end
       end
+      opt_parser.parse!(argv)
+
       options[:files] = argv
       options[:files] = ["."] if argv.empty?
 
-      opt_parser.parse!(argv)
 
       options
     rescue OptionParser::InvalidOption => error
