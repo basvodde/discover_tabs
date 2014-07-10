@@ -55,21 +55,76 @@ describe "It can discover tabs" do
     end
   end
 
-  it "Defaults to the current dir" do
-    DiscoverTabs.should_receive(:files_with_tab_indenting).with(".").and_return([])
-    DiscoverTabs.cmdline_run([]).should== 1
+  context "tab replacement" do
+
+    it "will return the same line if there is no tab on the line" do
+      DiscoverTabs.replace_tabs_with_spaces_on_line("string", 4).should== "string"
+    end
+
+    it "will convert one tab at the beginning to spaces" do
+      DiscoverTabs.replace_tabs_with_spaces_on_line("\tstring", 2).should== "  string"
+    end
+
+    it "will convert multiple tabs at the beginning to spaces" do
+      DiscoverTabs.replace_tabs_with_spaces_on_line("\t\t\tstring", 3).should== "         string"
+    end
+
+    it "will not convert tabs that are not at the beginning" do
+      DiscoverTabs.replace_tabs_with_spaces_on_line(" \tstri\tng\t", 3).should== " \tstri\tng\t"
+    end
+
+    it "will replace all tabs in a multi-line file" do
+      DiscoverTabs.replace_tabs_with_spaces("\t\thello\nworld\n\t", 2).should== "    hello\nworld\n  "
+    end
+
+    it "will read and re-write the files which it replaces spaces" do
+      File.should_receive(:read).with("file").and_return("content")
+      DiscoverTabs.should_receive(:replace_tabs_with_spaces).with("content", 3).and_return("new_content")
+      File.should_receive(:write).with("file", "new_content")
+      DiscoverTabs.replace_tabs_in_files(["file"], 3)
+    end
   end
 
-  it "Should print all the file to stdout" do
-    DiscoverTabs.should_receive(:files_with_tab_indenting).with("file").and_return(["file"])
-    DiscoverTabs.should_receive(:puts).with("file")
-    DiscoverTabs.cmdline_run(["file"]).should== 0
+  context "Parsing parameters" do
+    it "Can print out an error on error" do
+      DiscoverTabs.should_receive(:puts).with("invalid option: --wrong_parameter")
+      DiscoverTabs.should_receive(:exit).with(1)
+      DiscoverTabs.parse_argv(["--wrong_parameter"])
+    end
+
+    it "Should receive the help text on -h" do
+      DiscoverTabs.should_receive(:puts).with("usage: discover_tabs [options] [filename|directory]\n    -r N                             Replace tabs intending with N spaces\n    -h, --help\
+                       Show this message\n")
+      DiscoverTabs.should_receive(:exit).with(0)
+      DiscoverTabs.parse_argv(["-h"])
+    end
+
+    it "Should parse the -r4 and pass it back properly" do
+      DiscoverTabs.parse_argv(["-r4", "file"])[:replace_tabs].should == 4
+    end
+
+    it "Should parse the filename|directory" do
+      DiscoverTabs.parse_argv(["file"])[:files].should == ["file"]
+    end
+
+    it "Should default the filename|directory to current dir" do
+      DiscoverTabs.parse_argv([])[:files].should == ["."]
+    end
   end
 
-  it "Makes sure the pathname is clean when printing a file" do
-    DiscoverTabs.should_receive(:files_with_tab_indenting).with("dir//file").and_return(["dir//file"])
-    DiscoverTabs.should_receive(:puts).with("dir/file")
-    DiscoverTabs.cmdline_run(["dir//file"]).should== 0
-  end
+  context "Command line main entry point" do
+    it "Should print all the file to stdout" do
+      DiscoverTabs.should_receive(:files_with_tab_indenting).with("file").and_return(["file"])
+      DiscoverTabs.should_receive(:files_with_tab_indenting).with("file2").and_return([])
+      DiscoverTabs.should_receive(:puts).with("file")
+      DiscoverTabs.cmdline_run(["file", "file2"]).should== 0
+    end
 
+    it "Makes sure the pathname is clean when printing a file" do
+      DiscoverTabs.should_receive(:files_with_tab_indenting).and_return(["file"])
+      DiscoverTabs.should_receive(:puts)
+      DiscoverTabs.should_receive(:replace_tabs_in_files).with(["file"], 4)
+      DiscoverTabs.cmdline_run(["-r4", "file"]).should== 0
+    end
+  end
 end
