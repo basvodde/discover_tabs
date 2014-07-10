@@ -3,7 +3,7 @@ discover_tabs
 
 Discover which files use tabs
 
-*** Usage
+### Usage
 
 After installation, there should be a command line app called "discover_tabs" on your path.
 
@@ -15,6 +15,6 @@ e.g.
 
 discover_tabs *.cpp
 
-*** Installation
+### Installation
 
 gem discover_tabs
