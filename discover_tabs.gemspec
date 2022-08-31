@@ -15,7 +15,7 @@ Gem::Specification.new do |gem|
   gem.email    = 'basv@odd-e.com'
   gem.homepage = 'https://github.com/basvodde/discover_tabs'
 
-  gem.add_runtime_dependency( 'rake', '~> 0')
+  gem.add_runtime_dependency( 'rake', '~> 12.3.3')
   gem.add_runtime_dependency( 'ptools', '~> 1.1')
   gem.add_development_dependency('rspec', '~> 2.0', '>= 2.0.0')
 
